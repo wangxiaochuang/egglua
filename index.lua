@@ -1,4 +1,3 @@
-return {
-    Controller = require('egglua.lib.core.base_context_class'),
-    Service = require('egglua.lib.core.base_context_class'),
-}
+local ApplicationWrapper = require("egglua.lib.ApplicationWrapper")
+
+return ApplicationWrapper:new()

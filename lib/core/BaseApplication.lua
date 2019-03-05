@@ -4,14 +4,17 @@ local BaseRequest = require("egglua.lib.core.BaseRequest")
 local BaseResponse = require("egglua.lib.core.BaseResponse")
 
 
-function _M:new(o)
-    o = o or {
-        context = BaseContext:clone(),
-        request = BaseRequest:clone(),
-        response = BaseResponse:clone(),
+function _M:new()
+    local o = {
+        router = nil
     }
     setmetatable(o, self)
     self.__index = self
     return o
 end
 
+function _M:run()
+    local ctx = BaseContext:new(self),
+end
+
+return _M
