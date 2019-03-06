@@ -1,13 +1,18 @@
 local _M = {}
+local BaseRequest = require("egglua.lib.core.BaseRequest")
+local BaseResponse = require("egglua.lib.core.BaseResponse")
 
 function _M:new(app)
     local instance = {
         app = app,
         request = BaseRequest:new(),
         response = BaseResponse:new(),
+        body = "init body data, you should not see it",
+        state = {}
     }
-    setmetatable(o, self)
+    setmetatable(instance, self)
     self.__index = self
-    return o
+    return instance
 end
 
+return _M

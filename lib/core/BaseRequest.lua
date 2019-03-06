@@ -1,10 +1,12 @@
 local _M = {}
 
-function _M:clone()
-    local o = {}
-    for key, val in pairs(self) do
-        o[key] = val
-    end
+function _M:new()
+    local o = {
+        headers = {},
+    }
+    setmetatable(o, self)
+    self.__index = self
+    return o
 end
 
 return _M
