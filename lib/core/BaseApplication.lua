@@ -1,11 +1,12 @@
 local _M = {}
 local cjson = require("cjson")
 local BaseContext = require("egglua.lib.core.BaseContext")
+local BaseRouter = require("egglua.lib.core.router.BaseRouter")
 local utils = require("egglua.lib.utils.utils")
 local tinsert = table.insert
 local tconcat = table.concat
 
-local init, loadMiddlewares, loadConfig, handle, compose, loadPlugins
+local init, loadMiddlewares, loadConfig, handle, compose, loadPlugins, loadRouters
 
 function _M:new(root, env)
     local o = {
@@ -20,13 +21,15 @@ function _M:new(root, env)
     setmetatable(o, self)
     self.__index = self
     init(o)
+    o.router = BaseRouter:new(o)
     return o
 end
 
 init = function(app)
     loadConfig(app)
-    loadMiddlewares(app)
     loadPlugins(app)
+    loadMiddlewares(app)
+    loadRouters(app)
 end
 
 loadConfig  = function(app)
@@ -61,6 +64,9 @@ loadConfig  = function(app)
     app.config = conf
 end
 
+loadPlugins = function(app)
+end
+
 loadMiddlewares = function(app)
     local root = app.root
     local config = app.config
@@ -86,7 +92,7 @@ loadMiddlewares = function(app)
     app.fnMiddlewares = compose(allMiddlewares)
 end
 
-loadPlugins = function(app)
+loadRouters = function(app)
 end
 
 compose = function(funcs)
@@ -110,7 +116,6 @@ function _M:run()
 end
 
 handle = function(app, ctx)
-    ngx.header['Content-Type'] = "application/json; charset=utf-8"
     local err_msg = nil
     local ok, ee = xpcall(function()
         app.fnMiddlewares(ctx)
