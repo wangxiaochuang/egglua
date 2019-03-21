@@ -6,14 +6,13 @@ local utils = require("egglua.lib.utils.utils")
 local tinsert = table.insert
 local tconcat = table.concat
 
-local init, loadMiddlewares, loadConfig, handle, compose, loadPlugins, loadRouters
+local init, loadMiddlewares, loadConfig, handle, compose, loadPlugins, loadRouters, loadControllers
 
 function _M:new(root, env)
     local o = {
         root = root,
         env = env,
         router = nil,
-        -- middlewares = nil,
         plugins = nil,
         config = nil,
         fnMiddlewares = nil
@@ -21,7 +20,6 @@ function _M:new(root, env)
     setmetatable(o, self)
     self.__index = self
     init(o)
-    o.router = BaseRouter:new(o)
     return o
 end
 
@@ -93,6 +91,9 @@ loadMiddlewares = function(app)
 end
 
 loadRouters = function(app)
+    local router = BaseRouter:new()
+    app.router = router
+    router:init(app)
 end
 
 compose = function(funcs)

@@ -23,10 +23,10 @@ function _M.loadPackage(path, flag)
         error("package path can not be empty")
     end
     local ok, pkg = pcall(require, path)
-    if ok then
-        return flag and pkg or nil
+    if flag then
+        return ok and pkg or nil
     else    
-        return flag and pkg or error("can not load package: " .. path)
+        return ok and pkg or error("can not load package: " .. path)
     end
 end
 
