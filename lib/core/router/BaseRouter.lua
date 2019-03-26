@@ -6,7 +6,8 @@ local init
 function _M:new()
     local o = {
         root = nil,
-        map = {}
+        map = {},
+        trie = Trie:new{}
     }
     setmetatable(o, self)
     self.__index = self
@@ -94,16 +95,16 @@ local function loadRouterFunc(router, params, method)
     if not path or string.len(path) == 0 then
         error("path can not be empty")
     end
-    local map = router.map
+    -- local map = router.map
     local handler_func = root .. ".app.controller." .. params.handler
 
-    for pkg, func in string.gmatch(handler_func, '(.*)%.([%w_%-]+)') do
-        local pkg = utils.loadPackage(pkg)
-        if not map[method] then map[method] = {} end
-        -- map[method][path] = pkg[func]
-        if not map[method] then map[method] = {} end
-        addRouter(map[method], path, pkg[func])
-    end
+    self.trie:insert(path, handler_func)
+    -- for pkg, func in string.gmatch(handler_func, '(.*)%.([%w_%-]+)') do
+        -- local pkg = utils.loadPackage(pkg)
+        -- if not map[method] then map[method] = {} end
+        -- if not map[method] then map[method] = {} end
+        -- addRouter(map[method], path, pkg[func])
+    -- end
 end
 
 function _M:get(params)
