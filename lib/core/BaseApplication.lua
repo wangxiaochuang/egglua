@@ -5,8 +5,10 @@ local BaseRouter = require("egglua.lib.core.router.BaseRouter")
 local utils = require("egglua.lib.utils.utils")
 local tinsert = table.insert
 local tconcat = table.concat
+local string_sub = string.sub
+local fileUtils = require("egglua.lib.utils.FileUtils")
 
-local init, loadMiddlewares, loadConfig, handle, compose, loadPlugins, loadRouters, loadControllers
+local init, loadMiddlewares, loadConfig, handle, compose, loadPlugins, loadRouters, loadControllers, loadServices
 
 function _M:new(root, env)
     local o = {
@@ -14,6 +16,8 @@ function _M:new(root, env)
         env = env,
         router = nil,
         plugins = nil,
+        controller = {},
+        service = {},
         config = nil,
         fnMiddlewares = nil
     }
@@ -26,6 +30,8 @@ end
 init = function(app)
     loadConfig(app)
     loadPlugins(app)
+    loadControllers(app)
+    loadServices(app)
     loadMiddlewares(app)
     loadRouters(app)
 end
@@ -63,6 +69,47 @@ loadConfig  = function(app)
 end
 
 loadPlugins = function(app)
+end
+
+local function loadFuncs(pkg, path)
+
+    local dirs = fileUtils.getDirs(path)
+    for _, dir in ipairs(dirs) do
+        if not pkg[dir] then pkg[dir] = {} end
+        loadControllerFunc(pkg[dir], path .. "/" .. dir)
+    end
+
+    local files = fileUtils.getFiles(path)
+    for _, file in ipairs(files) do
+        if string_sub(file, -4) == ".lua" then
+            filename = string_sub(file, 1, -5)
+            pkg[filename] = dofile(path .. "/" .. file)
+        end
+    end
+end
+
+loadControllers = function(app)
+    local path = nil
+    for item in string.gmatch(package.path, '([^;]*%?.lua);') do
+        path = string.gsub(item, "%?.lua", app.root) .. "/app/controller"
+        if fileUtils.isExist(path) then
+            break
+        end
+    end
+
+    loadFuncs(app.controller, path)
+end
+
+loadServices = function(app)
+    local path = nil
+    for item in string.gmatch(package.path, '([^;]*%?.lua);') do
+        path = string.gsub(item, "%?.lua", app.root) .. "/app/service"
+        if fileUtils.isExist(path) then
+            break
+        end
+    end
+
+    loadFuncs(app.service, path)
 end
 
 loadMiddlewares = function(app)

@@ -27,11 +27,10 @@ function _M:init(app)
     end
 
     appRouterFunc(app)
-
     --[[
     local matched = self.trie:match("/home/id/xiao")
     if matched then
-        ngx.say(cjson.encode(matched))
+        matched.handlers["GET"]()
     else
         ngx.say("it is nil")
     end
@@ -45,7 +44,10 @@ local function loadRouterFunc(router, params, method)
     if not path or string.len(path) == 0 then
         error("path can not be empty")
     end
-    local handler_func = root .. ".app.controller." .. params.handler
+    local handler_func = params.handler
+    if not handler_func then
+        error("path[" .. path .. "] handler_func is nil")
+    end
     router.trie:add(path, handler_func, method)
 end
 

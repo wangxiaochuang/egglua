@@ -101,7 +101,7 @@ local function _match(parent, path, params)
             if #other == 0 and parent.children[frag].isEndpoint then
                 return {
                     pattern = parent.children[frag].pattern,
-                    handler = parent.children[frag].handlers
+                    handlers = parent.children[frag].handlers
                 }
             end
             matched = _match(parent.children[frag], other, params)
@@ -121,7 +121,7 @@ local function _match(parent, path, params)
             if #other == 0 and colon_child.isEndpoint then
                 return {
                     pattern = colon_child.pattern,
-                    handler = colon_child.handlers,
+                    handlers = colon_child.handlers,
                     params = params
                 }
             end
