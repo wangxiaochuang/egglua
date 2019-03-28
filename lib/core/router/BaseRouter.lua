@@ -1,6 +1,7 @@
 local utils = require("egglua.lib.utils.utils")
 local Trie = require("egglua.lib.Trie")
 local cjson = require "cjson"
+local string_sub = string.sub
 local _M = {}
 
 local init
@@ -69,6 +70,61 @@ end
 
 function _M:del(params)
     loadRouterFunc(self, params, "POST")
+end
+
+function _M:resources(params)
+    local handler = params.handler
+    local path = params.path 
+
+    if path == "/" then
+        error("resources path can not be /")
+    end
+    if string_sub(path, -1) == "/" then
+        path = string_sub(path, 1, #path - 1)
+    end
+
+    if handler.index then
+        self:get{
+            path = path,
+            handler = handler.index
+        }
+    end
+    if handler.new then
+        self:get{
+            path = path .. "/new",
+            handler = handler.new
+        }
+    end
+    if handler.show then
+        self:get{
+            path = path .. "/:id",
+            handler = handler.show
+        }
+    end
+    if handler.edit then
+        self:get{
+            path = path .. "/:id/edit",
+            handler = handler.edit
+        }
+    end
+    if handler.create then
+        self:post{
+            path = path,
+            handler = handler.create
+        }
+    end
+    if handler.update then
+        self:put{
+            path = path .. "/:id",
+            handler = handler.update
+        }
+    end
+    if handler.destroy then
+        self:delete{
+            path = path .. "/:id",
+            handler = handler.destroy
+        }
+    end
 end
 
 return _M
