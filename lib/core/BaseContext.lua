@@ -5,8 +5,8 @@ local BaseResponse = require("egglua.lib.core.BaseResponse")
 function _M:new(app)
     local instance = {
         app = app,
-        request = BaseRequest:new(),
-        response = BaseResponse:new(),
+        req = BaseRequest:new(),
+        res = BaseResponse:new(),
         body = "init body data, you should not see it",
         state = {}
     }

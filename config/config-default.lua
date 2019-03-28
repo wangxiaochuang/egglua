@@ -1,3 +1,3 @@
 return {
-    coreMiddleware = {"router", "parseBody", "gzip"}
+    coreMiddleware = {"parseBody", "gzip"}
 }

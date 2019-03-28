@@ -32,8 +32,8 @@ init = function(app)
     loadPlugins(app)
     loadControllers(app)
     loadServices(app)
-    loadMiddlewares(app)
     loadRouters(app)
+    loadMiddlewares(app)
 end
 
 loadConfig  = function(app)
@@ -134,6 +134,12 @@ loadMiddlewares = function(app)
         tinsert(allMiddlewares, fn(config[item] or {}))
     end
 
+    local ok, fn = pcall(require, "egglua.app.middleware.m_router")
+    if not ok then
+        error("require middleware " .. item .. " failed")
+    end
+    tinsert(allMiddlewares, fn(config.router or {}))
+
     app.fnMiddlewares = compose(allMiddlewares)
 end
 
@@ -165,6 +171,8 @@ end
 
 handle = function(app, ctx)
     local err_msg = nil
+    app.fnMiddlewares(ctx)
+    --[[
     local ok, ee = xpcall(function()
         app.fnMiddlewares(ctx)
     end, function(msg)
@@ -183,6 +191,7 @@ handle = function(app, ctx)
         ngx.say("inter server failed")
         ngx.log(ngx.ERR, err_msg)
     end
+    ]]
 end
 
 return _M
