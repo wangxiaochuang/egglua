@@ -49,10 +49,13 @@ local function composeMiddleware(app, routerMiddleware)
     local middlewareMap = app.middleware
     local config = app.config
     local unique = {
-        router = true
+        router = true,
+        output = true
     }
 
     local prepareMiddleware = {}
+    table_insert(prepareMiddleware, middlewareMap["output"](config.router or {}))
+
     local coreMiddleware = app.config.coreMiddleware
     for _, item in ipairs(coreMiddleware) do
         if unique[item] then

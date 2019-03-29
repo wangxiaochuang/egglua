@@ -98,11 +98,10 @@ loadPlugins = function(app)
 end
 
 local function loadFuncs(pkg, path)
-
     local dirs = fileUtils.getDirs(path)
     for _, dir in ipairs(dirs) do
         if not pkg[dir] then pkg[dir] = {} end
-        loadControllerFunc(pkg[dir], path .. "/" .. dir)
+        loadFuncs(pkg[dir], path .. "/" .. dir)
     end
 
     local files = fileUtils.getFiles(path)
@@ -124,7 +123,9 @@ end
 
 loadServices = function(app)
     local path = app.appRootPath .. "/app/service"
-    loadFuncs(app.service, path)
+    if fileUtils.isExist(path) then
+        loadFuncs(app.service, path)
+    end
 end
 
 loadMiddlewares = function(app)
@@ -158,10 +159,12 @@ handle = function(ctx)
     local trie = app.router.trie
     local matched = trie:match(path)
     if not matched then
-        ngx.say(404)
+        ngx.status = 404
+        ngx.exit(404)
         return
     end
-    ctx.matched = matched
+    -- ctx.matched = matched
+    rawset(ctx, "matched", matched)
     local ok, ee = xpcall(function()
         matched.fnMiddleware(ctx)
     end, function(msg)
@@ -177,8 +180,8 @@ handle = function(ctx)
         err_msg = err_msg .. "\n" .. traceback()
     end)
     if not ok then
-        ngx.say(err_msg)
-        ngx.say("inter server failed")
+        ngx.status = 500
+        ngx.exit(500)
         ngx.log(ngx.ERR, err_msg)
     end
 end

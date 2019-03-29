@@ -7,12 +7,13 @@ function _M:new(app)
         app = app,
         req = BaseRequest:new(),
         res = BaseResponse:new(),
-        body = "init body data, you should not see it",
         state = {},
         matched = nil
     }
-    setmetatable(instance, self)
-    self.__index = self
+    setmetatable(instance, {
+        __index = self,
+        __newindex = instance.res
+    })
     return instance
 end
 

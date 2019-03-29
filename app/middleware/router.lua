@@ -5,7 +5,10 @@ return function(options)
         ctx.req.params = matched.params
         local handler = matched.handlers[method]
         if handler then
-            handler(ctx)
+            handler{
+                app = ctx.app,
+                ctx = ctx
+            }
         else
             ngx.say("404")
         end
