@@ -1,5 +1,7 @@
 local _M = {}
+local cjson = require "cjson"
 local tinsert = table.insert
+local table_insert = table.insert
 
 function _M.mixin(a, b)
     if a and b then
@@ -7,7 +9,7 @@ function _M.mixin(a, b)
             a[k] = b[k]
         end
     end
-    return a
+    return a or b
 end
 
 function _M.mergeArray(a, b)
@@ -39,6 +41,46 @@ function _M.split(str, delimiter)
         tinsert(result, match)
     end
     return result
+end
+
+function _M.getValues(dict)
+    local res = {}
+
+    if #dict > 0 then 
+        for k, v in pairs(dict) do
+            table_insert(res, v)
+        end
+    end
+
+    return res
+end
+
+function _M.select(dict, key)
+    local res = {}
+    for _, item in ipairs(dict) do
+        if item[key] then table_insert(res, item[key]) end
+    end
+    return next(res) and res or nil
+end
+
+function _M.is_array(t)
+    if type(t) ~= "table" then return false end
+    local i = 0
+    for _ in pairs(t) do
+        i = i + 1
+        if t[i] == nil then return false end
+    end
+    return true
+end
+
+function _M.trim_prefix_slash(s)
+    local str, _ = sgsub(s, "^(//*)", "")
+    return str
+end
+
+function _M.trim_suffix_slash(s)
+    local str, _ = sgsub(s, "(//*)$", "")
+    return str
 end
 
 return _M

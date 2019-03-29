@@ -6,61 +6,87 @@ local utils = require("egglua.lib.utils.utils")
 local tinsert = table.insert
 local tconcat = table.concat
 local string_sub = string.sub
+local string_gsub = string.gsub
+local string_gmatch = string.gmatch
 local fileUtils = require("egglua.lib.utils.FileUtils")
 
 local init, loadMiddlewares, loadConfig, handle, compose, loadPlugins, loadRouters, loadControllers, loadServices
 
-function _M:new(root, env)
+function _M:new(appname, env)
     local o = {
-        root = root,
+        coreRootPath = nil,
+        appRootPath = nil,
+        root = appname,
         env = env,
         router = nil,
         plugins = nil,
         controller = {},
         service = {},
         config = nil,
-        fnMiddlewares = nil
+        middleware = {}
     }
     setmetatable(o, self)
     self.__index = self
-    init(o)
+    init(o, appname)
     return o
 end
 
-init = function(app)
+init = function(app, appname)
+    local coreRootPath = app.coreRootPath
+    local appRootPath = app.appRootPath
+    for item in string_gmatch(package.path, '([^;]*%?.lua);') do
+        if not coreRootPath then
+            coreRootPath = string_gsub(item, "%?.lua", "egglua")
+            if not fileUtils.isExist(coreRootPath .. "/lib/core/BaseApplication.lua") then
+                coreRootPath = nil
+            end
+        end
+        if not appRootPath then
+            appRootPath = string_gsub(item, "%?.lua", appname)
+            if not fileUtils.isExist(appRootPath .. "/app/router.lua") then
+                appRootPath = nil
+            end
+        end
+    end
+    if not coreRootPath then error("egglua not found") end
+    if not appRootPath then error(appname .. " not found") end
+    app.coreRootPath = coreRootPath
+    app.appRootPath = appRootPath
+
     loadConfig(app)
     loadPlugins(app)
     loadControllers(app)
     loadServices(app)
-    loadRouters(app)
     loadMiddlewares(app)
+    loadRouters(app)
 end
 
 loadConfig  = function(app)
-    local root = app.root
+    local coreRootPath = app.coreRootPath
+    local appRootPath = app.appRootPath
     local env = app.env
     local envConf = nil
     -- 框架默认配置
-    local ok, defConf = pcall(require, "egglua.config.config-default")
-    if not ok then
-        error("egglua default config does not exist")
+    local defConf = dofile(coreRootPath .. "/config/config.default.lua")
+    if not defConf then
+        error("egglua default file not found")
     end
     -- 框架环境配置
     if env then
-        _, envConf = pcall(require, "egglua.config.config-" .. env)
+        envConf = dofile(coreRootPath .. "/config/config." .. env .. ".lua")
     end
     local conf = utils.mixin(defConf, envConf)
     local envConf = nil
 
     -- 应用默认配置
-    ok, defConf = pcall(require, root .. ".config.config-default")
-    if not ok then
-        error("egglua default config does not exist")
+    defConf = dofile(appRootPath .. "/config/config.default.lua")
+    if not defConf then
+        error("app default file not found")
     end
     conf = utils.mixin(conf, defConf)
     -- 应用环境配置
     if env then
-        _, envConf = pcall(require, root .. ".config.config-" .. env)
+        envConf = dofile(appRootPath .. "/config/config." .. env .. ".lua")
     end
     
     conf = utils.mixin(conf, envConf)
@@ -89,89 +115,54 @@ local function loadFuncs(pkg, path)
 end
 
 loadControllers = function(app)
-    local path = nil
-    for item in string.gmatch(package.path, '([^;]*%?.lua);') do
-        path = string.gsub(item, "%?.lua", app.root) .. "/app/controller"
-        if fileUtils.isExist(path) then
-            break
-        end
+    local path = app.appRootPath .. "/app/controller"
+    if not fileUtils.isExist(path) then
+        error("app controller not found")
     end
-
     loadFuncs(app.controller, path)
 end
 
 loadServices = function(app)
-    local path = nil
-    for item in string.gmatch(package.path, '([^;]*%?.lua);') do
-        path = string.gsub(item, "%?.lua", app.root) .. "/app/service"
-        if fileUtils.isExist(path) then
-            break
-        end
-    end
-
+    local path = app.appRootPath .. "/app/service"
     loadFuncs(app.service, path)
 end
 
 loadMiddlewares = function(app)
-    local root = app.root
-    local config = app.config
-    -- coreMiddleware
-    local allMiddlewares = {}
-    for _, item in ipairs(config.coreMiddleware) do
-        local ok, fn = pcall(require, "egglua.app.middleware.m_" .. item)
-        if not ok then
-            error("require middleware " .. item .. " failed")
-        end
-        tinsert(allMiddlewares, fn(config[item] or {}))
-    end
-
+    -- framework middleware
+    local coreMiddlewarePath = app.coreRootPath .. "/app/middleware"
+    loadFuncs(app.middleware, coreMiddlewarePath)
+    -- plugins middleware
     -- app middleware
-    for _, item in ipairs(config.middleware or {}) do
-        local ok, fn = pcall(require, root .. ".app.middleware.m_" .. item)
-        if not ok then
-            error("require middleware " .. item .. " failed")
-        end
-        tinsert(allMiddlewares, fn(config[item] or {}))
-    end
-
-    local ok, fn = pcall(require, "egglua.app.middleware.m_router")
-    if not ok then
-        error("require middleware " .. item .. " failed")
-    end
-    tinsert(allMiddlewares, fn(config.router or {}))
-
-    app.fnMiddlewares = compose(allMiddlewares)
+    local appMiddlewarePath = app.appRootPath .. "/app/middleware"
+    loadFuncs(app.middleware, appMiddlewarePath)
 end
 
 loadRouters = function(app)
-    local router = BaseRouter:new()
+    local router = BaseRouter:new(app)
     app.router = router
-    router:init(app)
+    router:init()
 end
 
-compose = function(funcs)
-    local nextWrapper = nil
-    nextWrapper = function(ctx, idx)
-        return function()
-            if funcs[idx] then
-                funcs[idx](ctx, nextWrapper(ctx, idx + 1))
-            end
-        end
-    end
 
-    return function(ctx)
-        nextWrapper(ctx, 1)()
-    end
-end
 
 function _M:run()
     local ctx = BaseContext:new(self)
-    handle(self, ctx)
+    handle(ctx)
 end
 
-handle = function(app, ctx)
+handle = function(ctx)
+    local app = ctx.app
+
     local err_msg = nil
-    app.fnMiddlewares(ctx)
+    local path = ctx.req.path
+    local trie = app.router.trie
+    local matched = trie:match(path)
+    if not matched then
+        ngx.say(404)
+        return
+    end
+    ctx.matched = matched
+    matched.fnMiddleware(ctx)
     --[[
     local ok, ee = xpcall(function()
         app.fnMiddlewares(ctx)

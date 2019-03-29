@@ -8,7 +8,8 @@ function _M:new(app)
         req = BaseRequest:new(),
         res = BaseResponse:new(),
         body = "init body data, you should not see it",
-        state = {}
+        state = {},
+        matched = nil
     }
     setmetatable(instance, self)
     self.__index = self

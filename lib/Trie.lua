@@ -78,7 +78,7 @@ local function _add(parent, pattern)
     end
 end
 
-function Trie:add(pattern, handler, method)
+function Trie:add(pattern, fnMiddleware, handler, method)
     local node = _add(self.root, pattern)
     if node.isEndpoint then
         error("duplicate router: " .. pattern)
@@ -86,6 +86,7 @@ function Trie:add(pattern, handler, method)
     node.isEndpoint = true
     node.pattern = pattern
     node.handlers[method] = handler
+    node.fnMiddleware = fnMiddleware
 end
 
 local function _match(parent, path, params)
@@ -101,7 +102,8 @@ local function _match(parent, path, params)
             if #other == 0 and parent.children[frag].isEndpoint then
                 return {
                     pattern = parent.children[frag].pattern,
-                    handlers = parent.children[frag].handlers
+                    handlers = parent.children[frag].handlers,
+                    fnMiddleware = parent.children[frag].fnMiddleware
                 }
             end
             matched = _match(parent.children[frag], other, params)
@@ -122,6 +124,7 @@ local function _match(parent, path, params)
                 return {
                     pattern = colon_child.pattern,
                     handlers = colon_child.handlers,
+                    fnMiddleware = colon_child.fnMiddleware,
                     params = params
                 }
             end
