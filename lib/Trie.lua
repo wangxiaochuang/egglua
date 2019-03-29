@@ -80,7 +80,7 @@ end
 
 function Trie:add(pattern, fnMiddleware, handler, method)
     local node = _add(self.root, pattern)
-    if node.isEndpoint then
+    if node.isEndpoint and node.handlers[method] then
         error("duplicate router: " .. pattern)
     end
     node.isEndpoint = true
@@ -135,9 +135,11 @@ local function _match(parent, path, params)
     end
 end
 
-function Trie:match(path)
+function Trie:match(path, method)
     local matched = _match(self.root, path)
-    return matched
+    if matched and matched.handlers[method] then
+        return matched
+    end
 end
 
 return Trie

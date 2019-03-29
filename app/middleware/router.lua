@@ -9,8 +9,6 @@ return function(options)
                 app = ctx.app,
                 ctx = ctx
             }
-        else
-            ngx.say("404")
         end
     end
 end

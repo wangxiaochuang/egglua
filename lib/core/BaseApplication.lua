@@ -1,22 +1,23 @@
 local _M = {}
-local cjson = require("cjson")
+local say = ngx.say
 local BaseContext = require("egglua.lib.core.BaseContext")
-local BaseRouter = require("egglua.lib.core.router.BaseRouter")
-local utils = require("egglua.lib.utils.utils")
-local tinsert = table.insert
-local tconcat = table.concat
-local string_sub = string.sub
+local table_concat = table.concat
 local string_gsub = string.gsub
 local string_gmatch = string.gmatch
 local fileUtils = require("egglua.lib.utils.FileUtils")
+local loadConfigs = require("egglua.lib.core.loader.Configs")
+local loadPlugins = require("egglua.lib.core.loader.Plugins")
+local loadControllers = require("egglua.lib.core.loader.Controllers")
+local loadServices = require("egglua.lib.core.loader.Services")
+local loadMiddlewares = require(("egglua.lib.core.loader.Middlewares"))
+local loadRouters = require("egglua.lib.core.loader.Routers")
 
-local init, loadMiddlewares, loadConfig, handle, compose, loadPlugins, loadRouters, loadControllers, loadServices
+local init, handle
 
 function _M:new(appname, env)
     local o = {
         coreRootPath = nil,
         appRootPath = nil,
-        root = appname,
         env = env,
         router = nil,
         plugins = nil,
@@ -25,8 +26,9 @@ function _M:new(appname, env)
         config = nil,
         middleware = {}
     }
-    setmetatable(o, self)
-    self.__index = self
+    setmetatable(o, {
+        __index = self
+    })
     init(o, appname)
     return o
 end
@@ -49,118 +51,28 @@ init = function(app, appname)
         end
     end
     if not coreRootPath then error("egglua not found") end
-    if not appRootPath then error(appname .. " not found") end
+    if not appRootPath then error(appname .. " router.lua not found") end
     app.coreRootPath = coreRootPath
     app.appRootPath = appRootPath
 
-    loadConfig(app)
+    loadConfigs(app)
     loadPlugins(app)
+    loadMiddlewares(app)
     loadControllers(app)
     loadServices(app)
-    loadMiddlewares(app)
     loadRouters(app)
 end
 
-loadConfig  = function(app)
-    local coreRootPath = app.coreRootPath
-    local appRootPath = app.appRootPath
-    local env = app.env
-    local envConf = nil
-    -- 框架默认配置
-    local defConf = dofile(coreRootPath .. "/config/config.default.lua")
-    if not defConf then
-        error("egglua default file not found")
-    end
-    -- 框架环境配置
-    if env then
-        envConf = dofile(coreRootPath .. "/config/config." .. env .. ".lua")
-    end
-    local conf = utils.mixin(defConf, envConf)
-    local envConf = nil
-
-    -- 应用默认配置
-    defConf = dofile(appRootPath .. "/config/config.default.lua")
-    if not defConf then
-        error("app default file not found")
-    end
-    conf = utils.mixin(conf, defConf)
-    -- 应用环境配置
-    if env then
-        envConf = dofile(appRootPath .. "/config/config." .. env .. ".lua")
-    end
-    
-    conf = utils.mixin(conf, envConf)
-    
-    app.config = conf
-end
-
-loadPlugins = function(app)
-end
-
-local function loadFuncs(pkg, path)
-    local dirs = fileUtils.getDirs(path)
-    for _, dir in ipairs(dirs) do
-        if not pkg[dir] then pkg[dir] = {} end
-        loadFuncs(pkg[dir], path .. "/" .. dir)
-    end
-
-    local files = fileUtils.getFiles(path)
-    for _, file in ipairs(files) do
-        if string_sub(file, -4) == ".lua" then
-            filename = string_sub(file, 1, -5)
-            pkg[filename] = dofile(path .. "/" .. file)
-        end
-    end
-end
-
-loadControllers = function(app)
-    local path = app.appRootPath .. "/app/controller"
-    if not fileUtils.isExist(path) then
-        error("app controller not found")
-    end
-    loadFuncs(app.controller, path)
-end
-
-loadServices = function(app)
-    local path = app.appRootPath .. "/app/service"
-    if fileUtils.isExist(path) then
-        loadFuncs(app.service, path)
-    end
-end
-
-loadMiddlewares = function(app)
-    -- framework middleware
-    local coreMiddlewarePath = app.coreRootPath .. "/app/middleware"
-    loadFuncs(app.middleware, coreMiddlewarePath)
-    -- plugins middleware
-    -- app middleware
-    local appMiddlewarePath = app.appRootPath .. "/app/middleware"
-    loadFuncs(app.middleware, appMiddlewarePath)
-end
-
-loadRouters = function(app)
-    local router = BaseRouter:new(app)
-    app.router = router
-    router:init()
-end
-
-
-
-function _M:run()
-    local ctx = BaseContext:new(self)
-    handle(ctx)
-end
-
-handle = function(ctx)
+handle = function(ctx, errhandle)
     local app = ctx.app
 
     local err_msg = nil
     local path = ctx.req.path
+    local method = string.upper(ctx.req.method)
     local trie = app.router.trie
-    local matched = trie:match(path)
+    local matched = trie:match(path, method)
     if not matched then
-        ngx.status = 404
-        ngx.exit(404)
+        errhandle(404, "not found")
         return
     end
     -- ctx.matched = matched
@@ -172,7 +84,7 @@ handle = function(ctx)
             if type(msg) == "string" then
                 err_msg = msg 
             elseif type(msg) == "table" then
-                err_msg = "[ERROR]" .. tconcat(msg, "|") .. "[/ERROR]"
+                err_msg = "[ERROR]" .. table_concat(msg, "|") .. "[/ERROR]"
             end
         else
             err_msg = ""
@@ -180,10 +92,26 @@ handle = function(ctx)
         err_msg = err_msg .. "\n" .. traceback()
     end)
     if not ok then
-        ngx.status = 500
-        ngx.exit(500)
-        ngx.log(ngx.ERR, err_msg)
+        errhandle(500, "system error =^_^=", err_msg)
+        return
     end
+end
+
+local function errhandleWrapper(debug)
+    return function(status, msg, debug)
+        ngx.status = status
+        if debug then
+            say(debug)
+        else
+            say(msg)
+        end
+        ngx.exit(ngx.status)
+    end
+end
+
+function _M:run()
+    local ctx = BaseContext:new(self)
+    handle(ctx, errhandleWrapper(self.config.debug))
 end
 
 return _M

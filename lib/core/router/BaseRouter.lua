@@ -16,18 +16,8 @@ function _M:new(app)
     setmetatable(o, {
         __index = self
     })
+    app.router = o
     return o
-end
-
-function _M:init()
-    local appRootPath = self.app.appRootPath
-    -- load app routers
-    local appRouterFunc = dofile(appRootPath .. "/app/router.lua")
-    if not appRouterFunc then
-        error("require app router failed")
-    end
-
-    appRouterFunc(self.app)
 end
 
 local function compose(funcs)

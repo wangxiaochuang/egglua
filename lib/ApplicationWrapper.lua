@@ -3,18 +3,18 @@ local lrucache = require "resty.lrucache"
 
 local _M = {}
 
-local c, err = lrucache.new(200)  -- allow up to 200 items in the cache
+local c, err = lrucache.new(5)  -- allow up to 200 items in the cache
 if not c then
     return error("failed to create the cache: " .. (err or "unknown"))
 end
 
-local createApplication = function(root, env)
-    local app = c:get("app")
+local createApplication = function(appname, env)
+    local app = c:get(appname)
     if app then
         return app
     else
-        app = BaseApplication:new(root, env)
-        c:set("app", app)
+        app = BaseApplication:new(appname, env)
+        c:set(appname, app)
     end
 
     return app
@@ -33,8 +33,8 @@ function _M:new()
     return instance
 end
 
-function _M:create_app(root, env)
-    self.app = createApplication(root, env)
+function _M:create_app(appname, env)
+    self.app = createApplication(appname, env)
     return self.app
 end
 
