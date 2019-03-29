@@ -2,6 +2,7 @@ local _M = {}
 local cjson = require "cjson"
 local tinsert = table.insert
 local table_insert = table.insert
+local string_gsub = string.gsub
 
 function _M.mixin(a, b)
     if a and b then
@@ -74,12 +75,12 @@ function _M.is_array(t)
 end
 
 function _M.trim_prefix_slash(s)
-    local str, _ = sgsub(s, "^(//*)", "")
+    local str, _ = string_gsub(s, "^(//*)", "")
     return str
 end
 
 function _M.trim_suffix_slash(s)
-    local str, _ = sgsub(s, "(//*)$", "")
+    local str, _ = string_gsub(s, "(//*)$", "")
     return str
 end
 

@@ -2,6 +2,7 @@ local utils = require("egglua.lib.utils.utils")
 local Trie = require("egglua.lib.Trie")
 local cjson = require "cjson"
 local string_sub = string.sub
+local string_gsub = string.gsub
 local table_insert = table.insert
 local _M = {}
 
@@ -99,6 +100,7 @@ local function loadRouterFunc(router, params, method)
     if not path or string.len(path) == 0 then
         error("path can not be empty")
     end
+    path = string_gsub(path, "//*", "/")
     local handler_func = params.handler
     if not handler_func then
         error("path[" .. path .. "] handler_func is nil")

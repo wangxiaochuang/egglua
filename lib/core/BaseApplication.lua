@@ -162,10 +162,8 @@ handle = function(ctx)
         return
     end
     ctx.matched = matched
-    matched.fnMiddleware(ctx)
-    --[[
     local ok, ee = xpcall(function()
-        app.fnMiddlewares(ctx)
+        matched.fnMiddleware(ctx)
     end, function(msg)
         if msg then
             if type(msg) == "string" then
@@ -179,10 +177,10 @@ handle = function(ctx)
         err_msg = err_msg .. "\n" .. traceback()
     end)
     if not ok then
+        ngx.say(err_msg)
         ngx.say("inter server failed")
         ngx.log(ngx.ERR, err_msg)
     end
-    ]]
 end
 
 return _M
