@@ -21,7 +21,6 @@ local function popen (command, n)
 end
 
 function _M.isExist(path)
-    -- local mode = lfs.attributes(path).mode
     local file, err = io.open(path)
     if not file then
         return false

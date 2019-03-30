@@ -21,6 +21,9 @@ end
 
 function _M.mergeArray(a, b)
     if a and b then
+        if not _M.is_array(a) or not _M.is_array(b) then
+            return nil
+        end
         local i = #a
         for idx = 1, #b do
             a[i + idx] = b[idx]
@@ -29,7 +32,9 @@ function _M.mergeArray(a, b)
     return a or b
 end
 function _M.convertToSet(t)
-    -- if next(t) and not _M.is_array(t) then return nil end
+    if not _M.is_array(t) then
+        return nil
+    end
     local res = {}
     for _, v in ipairs(t) do
         res[v] = true
@@ -38,12 +43,14 @@ function _M.convertToSet(t)
 end
 
 function _M.removeRepeat(t)
-    if not t then return nil end
+    if not t or not _M.is_array(t) then
+        return nil
+    end
     local unique = {}
     local res = {}
     for _, v in ipairs(t) do
-        if not res[v] then
-            res[v] = true
+        if not unique[v] then
+            unique[v] = true
             table_insert(res, v)
         end
     end
@@ -95,6 +102,7 @@ end
 
 function _M.is_array(t)
     if type(t) ~= "table" then return false end
+    if t and not next(t) then return true end
     local i = 0
     for _ in pairs(t) do
         i = i + 1
