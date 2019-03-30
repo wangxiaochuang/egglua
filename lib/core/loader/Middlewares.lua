@@ -14,4 +14,7 @@ return function(app)
     if fileUtils.isExist(appMiddlewarePath) then
         loadFuncs(app.middleware, appMiddlewarePath)
     end
+
+    -- compose framework, plugin and app middleware
+    app.fnMiddleware = app:composeMiddleware()
 end

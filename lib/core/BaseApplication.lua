@@ -2,8 +2,11 @@ local _M = {}
 local say = ngx.say
 local BaseContext = require("egglua.lib.core.BaseContext")
 local table_concat = table.concat
+local utils = require("egglua.lib.utils.utils")
+local compose = require("egglua.lib.core.Compose")
 local string_gsub = string.gsub
 local string_gmatch = string.gmatch
+local table_insert = table.insert
 local fileUtils = require("egglua.lib.utils.FileUtils")
 local loadConfigs = require("egglua.lib.core.loader.Configs")
 local loadPlugins = require("egglua.lib.core.loader.Plugins")
@@ -24,7 +27,10 @@ function _M:new(appname, env)
         controller = {},
         service = {},
         config = nil,
-        middleware = {}
+        -- functions set
+        middleware = {},
+        -- global middleware
+        fnMiddleware = nil
     }
     setmetatable(o, {
         __index = self
@@ -67,18 +73,9 @@ handle = function(ctx, errhandle)
     local app = ctx.app
 
     local err_msg = nil
-    local path = ctx.req.path
-    local method = string.upper(ctx.req.method)
-    local trie = app.router.trie
-    local matched = trie:match(path, method)
-    if not matched then
-        errhandle(404, "not found")
-        return
-    end
-    -- ctx.matched = matched
-    rawset(ctx, "matched", matched)
+
     local ok, ee = xpcall(function()
-        matched.fnMiddleware(ctx)
+        app.fnMiddleware(ctx)
     end, function(msg)
         if msg then
             if type(msg) == "string" then
@@ -107,6 +104,25 @@ local function errhandleWrapper(debug)
         end
         ngx.exit(ngx.status)
     end
+end
+
+function _M:composeMiddleware()
+    local config = self.config
+    local middlewareMap = self.middleware
+    local globalMiddleware = utils.removeRepeat(utils.mergeArray(config.coreMiddleware, config.middleware))
+
+    local prepareMiddleware = {}
+    for _, item in ipairs(globalMiddleware) do
+        local key = item
+        local opts = config[key]
+
+        if not middlewareMap[key] then
+            error("core middleware " .. key .. " not found")
+        end
+        table_insert(prepareMiddleware, middlewareMap[key](opts or {}))
+    end
+
+    return compose(prepareMiddleware)
 end
 
 function _M:run()

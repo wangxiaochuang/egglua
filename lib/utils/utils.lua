@@ -5,20 +5,49 @@ local table_insert = table.insert
 local string_gsub = string.gsub
 
 function _M.mixin(a, b)
+    local res = {}
+    if a then
+        for k, v in pairs(a) do
+            res[k] = v
+        end
+    end
+    if b then
+        for k, v in pairs(b) do
+            res[k] = v
+        end
+    end
+    return res
+end
+
+function _M.mergeArray(a, b)
     if a and b then
-        for k, _ in pairs(b) do
-            a[k] = b[k]
+        local i = #a
+        for idx = 1, #b do
+            a[i + idx] = b[idx]
         end
     end
     return a or b
 end
-
-function _M.mergeArray(a, b)
-    local i = #a
-    for idx = 1, #b do
-        a[i + idx] = b[idx]
+function _M.convertToSet(t)
+    -- if next(t) and not _M.is_array(t) then return nil end
+    local res = {}
+    for _, v in ipairs(t) do
+        res[v] = true
     end
-    return a
+    return res
+end
+
+function _M.removeRepeat(t)
+    if not t then return nil end
+    local unique = {}
+    local res = {}
+    for _, v in ipairs(t) do
+        if not res[v] then
+            res[v] = true
+            table_insert(res, v)
+        end
+    end
+    return res
 end
 
 function _M.loadPackage(path, flag)
