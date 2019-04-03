@@ -14,7 +14,6 @@ return function(options)
                 }
             end
         end)
-        
         ngx.say("router end")
     end
 end

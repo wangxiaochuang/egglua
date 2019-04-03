@@ -17,11 +17,10 @@ local loadRouters = require("egglua.lib.core.loader.Routers")
 
 local init, handle
 
-function _M:new(appname, env)
+function _M:new(appname)
     local o = {
         coreRootPath = nil,
         appRootPath = nil,
-        env = env,
         router = nil,
         plugins = nil,
         controller = {},
@@ -40,15 +39,16 @@ function _M:new(appname, env)
 end
 
 init = function(app, appname)
-    local coreRootPath = app.coreRootPath
+    local filepath = debug.getinfo(1, 'S').source:sub(2)
+    local s = string.find(filepath, "/lib/core/BaseApplication.lua")
+    if not s then
+        error("egglua not found")
+    end
+    local coreRootPath = string.sub(filepath, 1, s - 1)
+
+    -- find app root path
     local appRootPath = app.appRootPath
     for item in string_gmatch(package.path, '([^;]*%?.lua);') do
-        if not coreRootPath then
-            coreRootPath = string_gsub(item, "%?.lua", "egglua")
-            if not fileUtils.isExist(coreRootPath .. "/lib/core/BaseApplication.lua") then
-                coreRootPath = nil
-            end
-        end
         if not appRootPath then
             appRootPath = string_gsub(item, "%?.lua", appname)
             if not fileUtils.isExist(appRootPath .. "/app/router.lua") then
@@ -56,7 +56,6 @@ init = function(app, appname)
             end
         end
     end
-    if not coreRootPath then error("egglua not found") end
     if not appRootPath then error(appname .. " router.lua not found") end
     app.coreRootPath = coreRootPath
     app.appRootPath = appRootPath
@@ -71,9 +70,7 @@ end
 
 handle = function(ctx, errhandle)
     local app = ctx.app
-
     local err_msg = nil
-
     local ok, ee = xpcall(function()
         app.fnMiddleware(ctx)
     end, function(msg)
@@ -108,6 +105,9 @@ end
 
 function _M:composeMiddleware()
     local config = self.config
+    local coreMiddleware = config.coreMiddleware
+    table_insert(coreMiddleware, 1, "_gate")
+    table_insert(coreMiddleware, "_router")
     local middlewareMap = self.middleware
     local globalMiddleware = utils.removeRepeat(utils.mergeArray(config.coreMiddleware, config.middleware))
 

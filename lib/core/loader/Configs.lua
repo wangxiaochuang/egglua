@@ -1,10 +1,17 @@
 local utils = require("egglua.lib.utils.utils")
+local fileUtils = require("egglua.lib.utils.FileUtils")
 
 return function(app)
     local coreRootPath = app.coreRootPath
     local appRootPath = app.appRootPath
-    local env = app.env
     local envConf = nil
+    local env = nil
+    if fileUtils.isExist(appRootPath .. "/config/env.lua") then
+        local tmp = dofile(appRootPath .. "/config/env.lua")
+        if tmp then
+            env = tmp.env
+        end
+    end
     -- 框架默认配置
     local defConf = dofile(coreRootPath .. "/config/config.default.lua")
     if not defConf then
@@ -29,6 +36,7 @@ return function(app)
     end
     
     conf = utils.mixin(conf, envConf)
+    conf.env = env
     
     app.config = conf
 end

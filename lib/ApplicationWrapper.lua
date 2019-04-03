@@ -8,12 +8,12 @@ if not c then
     return error("failed to create the cache: " .. (err or "unknown"))
 end
 
-local createApplication = function(appname, env)
+local createApplication = function(appname)
     local app = c:get(appname)
     if app then
         return app
     else
-        app = BaseApplication:new(appname, env)
+        app = BaseApplication:new(appname)
         c:set(appname, app)
     end
 
@@ -33,8 +33,8 @@ function _M:new()
     return instance
 end
 
-function _M:create_app(appname, env)
-    self.app = createApplication(appname, env)
+function _M:create_app(appname)
+    self.app = createApplication(appname)
     return self.app
 end
 
