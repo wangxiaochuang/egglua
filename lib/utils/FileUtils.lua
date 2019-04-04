@@ -1,6 +1,8 @@
 local _M = {}
 local table_insert = table.insert
 local string_sub = string.sub
+local string_gsub = string.gsub
+local string_gmatch = string.gmatch
 
 local function popen (command, n)
     if not n then n = math.huge end
@@ -114,6 +116,20 @@ function _M.readdir(path, n)
     end
 
     return dir
+end
+
+function _M.findPath(name, checkpath)
+    local path = nil
+    checkpath = checkpath or ""
+    for item in string_gmatch(package.path, '([^;]*%?.lua);') do
+        if not path then
+            path = string_gsub(item, "%?.lua", name)
+            if not _M.isExist(path .. checkpath) then
+                path = nil
+            end
+        end
+    end
+    return path
 end
 
 return _M

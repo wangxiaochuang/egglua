@@ -2,41 +2,32 @@ local utils = require("egglua.lib.utils.utils")
 local fileUtils = require("egglua.lib.utils.FileUtils")
 
 return function(app)
-    local coreRootPath = app.coreRootPath
     local appRootPath = app.appRootPath
-    local envConf = nil
+    local units = app.units
     local env = nil
-    if fileUtils.isExist(appRootPath .. "/config/env.lua") then
-        local tmp = dofile(appRootPath .. "/config/env.lua")
+    local envPath = appRootPath .. "/config/env.lua"
+    if fileUtils.isExist(envPath) then
+        local tmp = dofile(envPath)
         if tmp then
             env = tmp.env
         end
     end
-    -- 框架默认配置
-    local defConf = dofile(coreRootPath .. "/config/config.default.lua")
-    if not defConf then
-        error("egglua default file not found")
-    end
-    -- 框架环境配置
-    if env then
-        envConf = dofile(coreRootPath .. "/config/config." .. env .. ".lua")
-    end
-    local conf = utils.mixin(defConf, envConf)
-    local envConf = nil
-
-    -- 应用默认配置
-    defConf = dofile(appRootPath .. "/config/config.default.lua")
-    if not defConf then
-        error("app default file not found")
-    end
-    conf = utils.mixin(conf, defConf)
-    -- 应用环境配置
-    if env then
-        envConf = dofile(appRootPath .. "/config/config." .. env .. ".lua")
+    local config = {}
+    for _, item in ipairs(units) do
+        local conf = dofile(item.path .. "/config/config.lua")
+        if type(conf) ~= "table" then
+            error(item.name .. " config is not table")
+        end
+        config = utils.mixin(config, conf)
+        if env then
+            local envConfPath = item.path .. "/config/config." .. env .. ".lua"
+            if fileUtils.isExist(envConfPath) then
+                local envconf = dofile(envConfPath)
+                config = utils.mixin(config, envconf)
+            end
+        end
     end
     
-    conf = utils.mixin(conf, envConf)
-    conf.env = env
-    
-    app.config = conf
+    config.env = env
+    app.config = config
 end

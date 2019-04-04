@@ -9,11 +9,13 @@ local string_gmatch = string.gmatch
 local table_insert = table.insert
 local fileUtils = require("egglua.lib.utils.FileUtils")
 local loadConfigs = require("egglua.lib.core.loader.Configs")
+local loadExtends = require("egglua.lib.core.loader.Extends")
 local loadPlugins = require("egglua.lib.core.loader.Plugins")
 local loadControllers = require("egglua.lib.core.loader.Controllers")
 local loadServices = require("egglua.lib.core.loader.Services")
 local loadMiddlewares = require(("egglua.lib.core.loader.Middlewares"))
 local loadRouters = require("egglua.lib.core.loader.Routers")
+local loadUnits = require("egglua.lib.core.loader.Units")
 
 local init, handle
 
@@ -23,16 +25,24 @@ function _M:new(appname)
         appRootPath = nil,
         router = nil,
         plugins = nil,
+        units = {},
         controller = {},
+        extends = {
+        },
         service = {},
         config = nil,
+        appname = appname,
         -- functions set
         middleware = {},
         -- global middleware
         fnMiddleware = nil
     }
     setmetatable(o, {
-        __index = self
+        __index = function(t, k)
+            if self[k] then return self[k] end
+            local ext_app = o.extends.application
+            if ext_app then return ext_app[k] end
+        end
     })
     init(o, appname)
     return o
@@ -47,24 +57,21 @@ init = function(app, appname)
     local coreRootPath = string.sub(filepath, 1, s - 1)
 
     -- find app root path
-    local appRootPath = app.appRootPath
-    for item in string_gmatch(package.path, '([^;]*%?.lua);') do
-        if not appRootPath then
-            appRootPath = string_gsub(item, "%?.lua", appname)
-            if not fileUtils.isExist(appRootPath .. "/app/router.lua") then
-                appRootPath = nil
-            end
-        end
+    local appRootPath = fileUtils.findPath(appname, "/app/router.lua")
+    if not appRootPath then
+        error(appname .. " not found")
     end
-    if not appRootPath then error(appname .. " router.lua not found") end
+
     app.coreRootPath = coreRootPath
     app.appRootPath = appRootPath
 
-    loadConfigs(app)
     loadPlugins(app)
+    loadUnits(app)
+    loadConfigs(app)
+    loadExtends(app)
+    loadServices(app)
     loadMiddlewares(app)
     loadControllers(app)
-    loadServices(app)
     loadRouters(app)
 end
 

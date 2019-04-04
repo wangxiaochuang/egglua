@@ -1,4 +1,5 @@
 local string_upper = string.upper
+local cjson = require "cjson"
 local say = ngx.say
 
 return function(options)
@@ -23,6 +24,10 @@ return function(options)
         next()
 
         ngx.status = res.status
-        say(res.body)
+        if type(res.body) == "table" then
+            say(cjson.encode(res.body))
+        else
+            say(res.body)
+        end
     end
 end
