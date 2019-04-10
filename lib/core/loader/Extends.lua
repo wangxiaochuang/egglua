@@ -30,6 +30,7 @@ return function(app)
             request = utils.mixin(request, dofile(path))
         end
     end
+    app.extends.request = request
 
     local response = {}
     for _, item in ipairs(units) do

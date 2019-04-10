@@ -1,7 +1,5 @@
 local BaseRouter = require("egglua.lib.core.router.BaseRouter")
 
-
-
 return function(app)
     local appRootPath = app.appRootPath
     BaseRouter:new(app)

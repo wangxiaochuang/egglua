@@ -8,14 +8,16 @@ local string_gsub = string.gsub
 local string_gmatch = string.gmatch
 local table_insert = table.insert
 local fileUtils = require("egglua.lib.utils.FileUtils")
+
+local loadPlugins = require("egglua.lib.core.loader.Plugins")
+local loadUnits = require("egglua.lib.core.loader.Units")
 local loadConfigs = require("egglua.lib.core.loader.Configs")
 local loadExtends = require("egglua.lib.core.loader.Extends")
-local loadPlugins = require("egglua.lib.core.loader.Plugins")
-local loadControllers = require("egglua.lib.core.loader.Controllers")
+local loadApps = require("egglua.lib.core.loader.Apps")
 local loadServices = require("egglua.lib.core.loader.Services")
 local loadMiddlewares = require(("egglua.lib.core.loader.Middlewares"))
+local loadControllers = require("egglua.lib.core.loader.Controllers")
 local loadRouters = require("egglua.lib.core.loader.Routers")
-local loadUnits = require("egglua.lib.core.loader.Units")
 
 local init, handle
 
@@ -44,11 +46,12 @@ function _M:new(appname)
             if ext_app then return ext_app[k] end
         end
     })
-    init(o, appname)
+    init(o)
     return o
 end
 
-init = function(app, appname)
+init = function(app)
+    local appname = app.appname
     local filepath = debug.getinfo(1, 'S').source:sub(2)
     local s = string.find(filepath, "/lib/core/BaseApplication.lua")
     if not s then
@@ -69,6 +72,7 @@ init = function(app, appname)
     loadUnits(app)
     loadConfigs(app)
     loadExtends(app)
+    loadApps(app)
     loadServices(app)
     loadMiddlewares(app)
     loadControllers(app)
