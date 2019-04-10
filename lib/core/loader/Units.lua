@@ -17,7 +17,12 @@ return function(app)
     local plugins = app.plugins
 
     local units = {}
-    utils.mergeArray(units, plugins)
+    --utils.mergeArray(units, plugins)
+    for _, item in ipairs(plugins) do
+        if item.enable then
+            table_insert(units, item)
+        end
+    end
 
     table_insert(units, {
         name = "egglua",
