@@ -7,10 +7,9 @@ local function findPlugins(plugins, path)
     end
 
     if fileUtils.isExist(path .. "/config/plugin.lua") then
-        for k, v in pairs(dofile(path .. "/config/plugin.lua")) do
-            if v.enable then
-                local root = fileUtils.findPath(v.name, "/config/config.lua")
-                local name = v.name
+        for name, opt in pairs(dofile(path .. "/config/plugin.lua")) do
+            if opt.enable then
+                local root = fileUtils.findPath(name, "/config/config.lua")
                 if root then
                     table_insert(plugins, {
                         name = name,
