@@ -10,7 +10,7 @@ function _M:new(app)
         req = BaseRequest:new(app),
         res = BaseResponse:new(app),
         helper = app.extends.helper,
-        state = {},
+        state = {data = "private"},
         matched = nil
     }
     local ext_ctx = app.extends.context
@@ -21,7 +21,8 @@ function _M:new(app)
         end,
         __newindex = instance.res
     })
-    rawset(instance, "service", convert(app.service, instance))
+    -- rawset(instance, "service", convert(app.service, instance))
+    rawset(instance, "service", app.service)
     return instance
 end
 
@@ -31,7 +32,11 @@ convert = function(orig, params)
         if type(v) == "table" then
             tmp[k] = convert(orig[k], params)
         elseif type(v) == "function" then
-            tmp[k] = v(params)
+            local newgt = {
+                this = {ctx = params}
+            }
+            setmetatable(newgt, {__index = _G})
+            tmp[k] = v(newgt)
         end
     end
     return tmp

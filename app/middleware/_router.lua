@@ -7,11 +7,10 @@ return function(options)
         matched.fnMiddleware(ctx, function() 
             ctx.req.params = matched.params
             local handler = matched.handlers[method]
+            
             if handler then
-                handler{
-                    app = ctx.app,
-                    ctx = ctx
-                }
+                local this = {ctx = ctx, app = ctx.app}
+                handler(this)
             end
         end)
         ngx.say("router end")

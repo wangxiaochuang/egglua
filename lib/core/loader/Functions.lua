@@ -1,6 +1,14 @@
 local fileUtils = require("egglua.lib.utils.FileUtils")
 local string_sub = string.sub
 
+Service = function(params)
+    return params
+end
+
+Controller = function(params)
+    return params
+end
+
 local function loadFuncs(pkg, path)
     local dirs = fileUtils.getDirs(path)
     for _, dir in ipairs(dirs) do
