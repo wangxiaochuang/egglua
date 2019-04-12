@@ -26,6 +26,7 @@ function _M:new(app)
     return instance
 end
 
+--[[
 convert = function(orig, params)
     local tmp = {}
     for k, v in pairs(orig) do
@@ -41,5 +42,6 @@ convert = function(orig, params)
     end
     return tmp
 end
+]]--
 
 return _M
