@@ -9,7 +9,7 @@ return function(options)
             local handler = matched.handlers[method]
             
             if handler then
-                local this = {ctx = ctx, app = ctx.app}
+                local this = {ctx = ctx, app = ctx.app, logger = ctx.logger}
                 handler(this)
             end
         end)
