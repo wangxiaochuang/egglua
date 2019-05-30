@@ -21,8 +21,20 @@ function _M:new(app)
         end,
         __newindex = instance.res
     })
-    -- rawset(instance, "service", convert(app.service, instance))
-    rawset(instance, "service", app.service)
+    -- rawset(instance, "service", app.service)
+
+    
+    rawset(instance, "service", setmetatable({}, {
+        __index = function(t, k)
+            local tmp = {ctx = instance}
+            setmetatable(tmp, {
+                __index = function(tab, key)
+                    return app.service[k][key]
+                end
+            })
+            return tmp
+        end
+    }))
     return instance
 end
 
