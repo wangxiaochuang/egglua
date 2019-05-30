@@ -21,39 +21,14 @@ function _M:new(app)
         end,
         __newindex = instance.res
     })
-    -- rawset(instance, "service", app.service)
-
     
-    rawset(instance, "service", setmetatable({}, {
+    rawset(instance, "service", setmetatable({ctx = instance, current = app.service}, {
         __index = function(t, k)
-            local tmp = {ctx = instance}
-            setmetatable(tmp, {
-                __index = function(tab, key)
-                    return app.service[k][key]
-                end
-            })
-            return tmp
+            t.current = t.current[k]
+            return type(t.current) == "table" and t or t.current
         end
     }))
     return instance
 end
-
---[[
-convert = function(orig, params)
-    local tmp = {}
-    for k, v in pairs(orig) do
-        if type(v) == "table" then
-            tmp[k] = convert(orig[k], params)
-        elseif type(v) == "function" then
-            local newgt = {
-                this = {ctx = params}
-            }
-            setmetatable(newgt, {__index = _G})
-            tmp[k] = v(newgt)
-        end
-    end
-    return tmp
-end
-]]--
 
 return _M
