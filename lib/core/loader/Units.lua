@@ -4,7 +4,7 @@ local fileUtils = require("egglua.lib.utils.FileUtils")
 
 local function findFramework(units, name, path)
     if fileUtils.isExist(path .. "/config/framework.lua") then
-        findFramework(plugins, fileUtils.findPath(dofile(path .. "/config/framework.lua"), "/config/config.lua"))
+        findFramework(units, fileUtils.findPath(dofile(path .. "/config/framework.lua"), "/config/config.lua"))
     end
     table_insert(units, {
         name = name,

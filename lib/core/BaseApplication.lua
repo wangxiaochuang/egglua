@@ -102,7 +102,7 @@ handle = function(ctx, errhandle)
     end
 end
 
-local function errhandleWrapper(debug)
+function _M.errhandle(debug)
     return function(status, msg, debug)
         ngx.status = status
         if debug then
@@ -133,12 +133,12 @@ function _M:composeMiddleware()
         table_insert(prepareMiddleware, middlewareMap[key](opts or {}))
     end
 
-    return compose(prepareMiddleware)
+    self.fnMiddleware = compose(prepareMiddleware)
 end
 
 function _M:run()
     local ctx = BaseContext:new(self)
-    handle(ctx, errhandleWrapper(self.config.debug))
+    handle(ctx, self.errhandle(self.config.debug))
 end
 
 return _M

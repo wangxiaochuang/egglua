@@ -11,5 +11,5 @@ return function(app)
     end
 
     -- compose framework, plugin and app middleware
-    app.fnMiddleware = app:composeMiddleware()
+    app:composeMiddleware()
 end
