@@ -1,6 +1,6 @@
 local table_insert = table.insert
-local utils = require("egglua.lib.utils.utils")
-local fileUtils = require("egglua.lib.utils.FileUtils")
+local utils = require("elf.lib.utils.utils")
+local fileUtils = require("elf.lib.utils.FileUtils")
 
 local function findFramework(units, name, path)
     if fileUtils.isExist(path .. "/config/framework.lua") then
@@ -25,7 +25,7 @@ return function(app)
     end
 
     table_insert(units, {
-        name = "egglua",
+        name = "elf",
         path = coreRootPath
     })
 

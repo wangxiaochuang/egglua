@@ -1,6 +1,6 @@
-local utils = require("egglua.lib.utils.utils")
-local Trie = require("egglua.lib.Trie")
-local compose = require("egglua.lib.core.Compose")
+local utils = require("elf.lib.utils.utils")
+local Trie = require("elf.lib.Trie")
+local compose = require("elf.lib.core.Compose")
 local cjson = require "cjson"
 local string_sub = string.sub
 local string_gsub = string.gsub

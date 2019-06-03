@@ -1,5 +1,5 @@
-local utils = require("egglua.lib.utils.utils")
-local fileUtils = require("egglua.lib.utils.FileUtils")
+local utils = require("elf.lib.utils.utils")
+local fileUtils = require("elf.lib.utils.FileUtils")
 
 return function(app)
     local appRootPath = app.appRootPath

@@ -1,4 +1,4 @@
-local Node = require("egglua.lib.Node")
+local Node = require("elf.lib.Node")
 local string_gmatch = string.gmatch
 local string_sub = string.sub
 local string_gsub = string.gsub

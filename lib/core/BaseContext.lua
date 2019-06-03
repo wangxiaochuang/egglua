@@ -1,6 +1,6 @@
 local _M = {}
-local BaseRequest = require("egglua.lib.core.BaseRequest")
-local BaseResponse = require("egglua.lib.core.BaseResponse")
+local BaseRequest = require("elf.lib.core.BaseRequest")
+local BaseResponse = require("elf.lib.core.BaseResponse")
 local type = type
 
 function _M:new(app)

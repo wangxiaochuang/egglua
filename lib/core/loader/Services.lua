@@ -1,5 +1,5 @@
-local loadFuncs = require("egglua.lib.core.loader.Functions")
-local fileUtils = require("egglua.lib.utils.FileUtils")
+local loadFuncs = require("elf.lib.core.loader.Functions")
+local fileUtils = require("elf.lib.utils.FileUtils")
 
 return function(app)
     local units = app.units

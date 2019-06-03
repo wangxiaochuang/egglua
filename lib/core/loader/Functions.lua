@@ -1,4 +1,4 @@
-local fileUtils = require("egglua.lib.utils.FileUtils")
+local fileUtils = require("elf.lib.utils.FileUtils")
 local string_sub = string.sub
 
 local loadfunc = function(params)

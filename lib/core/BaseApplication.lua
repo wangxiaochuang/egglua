@@ -1,23 +1,23 @@
 local _M = {}
 local say = ngx.say
-local BaseContext = require("egglua.lib.core.BaseContext")
+local BaseContext = require("elf.lib.core.BaseContext")
 local table_concat = table.concat
-local utils = require("egglua.lib.utils.utils")
-local compose = require("egglua.lib.core.Compose")
+local utils = require("elf.lib.utils.utils")
+local compose = require("elf.lib.core.Compose")
 local string_gsub = string.gsub
 local string_gmatch = string.gmatch
 local table_insert = table.insert
-local fileUtils = require("egglua.lib.utils.FileUtils")
+local fileUtils = require("elf.lib.utils.FileUtils")
 
-local loadPlugins = require("egglua.lib.core.loader.Plugins")
-local loadUnits = require("egglua.lib.core.loader.Units")
-local loadConfigs = require("egglua.lib.core.loader.Configs")
-local loadExtends = require("egglua.lib.core.loader.Extends")
-local loadApps = require("egglua.lib.core.loader.Apps")
-local loadServices = require("egglua.lib.core.loader.Services")
-local loadMiddlewares = require(("egglua.lib.core.loader.Middlewares"))
-local loadControllers = require("egglua.lib.core.loader.Controllers")
-local loadRouters = require("egglua.lib.core.loader.Routers")
+local loadPlugins = require("elf.lib.core.loader.Plugins")
+local loadUnits = require("elf.lib.core.loader.Units")
+local loadConfigs = require("elf.lib.core.loader.Configs")
+local loadExtends = require("elf.lib.core.loader.Extends")
+local loadApps = require("elf.lib.core.loader.Apps")
+local loadServices = require("elf.lib.core.loader.Services")
+local loadMiddlewares = require(("elf.lib.core.loader.Middlewares"))
+local loadControllers = require("elf.lib.core.loader.Controllers")
+local loadRouters = require("elf.lib.core.loader.Routers")
 
 local init, handle
 
@@ -55,7 +55,7 @@ init = function(app)
     local filepath = debug.getinfo(1, 'S').source:sub(2)
     local s = string.find(filepath, "/lib/core/BaseApplication.lua")
     if not s then
-        error("egglua not found")
+        error("elf not found")
     end
     local coreRootPath = string.sub(filepath, 1, s - 1)
 

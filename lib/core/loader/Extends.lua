@@ -1,6 +1,6 @@
 local table_insert = table.insert
-local fileUtils = require("egglua.lib.utils.FileUtils")
-local utils = require("egglua.lib.utils.utils")
+local fileUtils = require("elf.lib.utils.FileUtils")
+local utils = require("elf.lib.utils.utils")
 
 return function(app)
     local units = app.units
