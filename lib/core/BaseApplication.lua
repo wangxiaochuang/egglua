@@ -71,6 +71,14 @@ init = function(app)
     loadPlugins(app)
     loadUnits(app)
     loadConfigs(app)
+
+    app.output = ngx.say
+    if not app.config.debug then
+        ngx.say = function(...)
+            ngx.log(ngx.ERR, ...)
+        end
+    end
+
     loadExtends(app)
     loadApps(app)
     loadServices(app)

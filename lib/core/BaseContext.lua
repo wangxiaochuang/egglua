@@ -1,8 +1,7 @@
 local _M = {}
 local BaseRequest = require("egglua.lib.core.BaseRequest")
 local BaseResponse = require("egglua.lib.core.BaseResponse")
-
-local convert
+local type = type
 
 function _M:new(app)
     local instance = {

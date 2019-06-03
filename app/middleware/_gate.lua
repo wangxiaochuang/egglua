@@ -5,11 +5,6 @@ local say = ngx.say
 return function(options)
     return function(ctx, next)
         local res = ctx.res
-        if not ctx.app.config.debug then
-            ngx.say = function()
-                ngx.log(ngx.ERR, "you should not use ngx.say function")
-            end
-        end
 
         local path = ctx.req.path
         local method = string_upper(ctx.req.method)
@@ -23,11 +18,13 @@ return function(options)
 
         next()
 
-        ngx.status = res.status
+        if not ctx.app.config.debug then
+            ngx.status = res.status
+        end
         if type(res.body) == "table" then
-            say(cjson.encode(res.body))
+            ctx.app.output(cjson.encode(res.body))
         else
-            say(res.body)
+            ctx.app.output(res.body)
         end
     end
 end

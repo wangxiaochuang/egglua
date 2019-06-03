@@ -6,12 +6,13 @@ return function(options)
         ngx.say("router begin")
         matched.fnMiddleware(ctx, function() 
             ctx.req.params = matched.params
-            local handler = matched.handlers[method]
-            
-            if handler then
-                local this = {ctx = ctx, app = ctx.app, logger = ctx.logger}
-                handler(this)
-            end
+            local this = {
+                ctx = ctx, 
+                app = ctx.app, 
+                logger = ctx.logger, 
+                service = ctx.service
+            }
+            matched.handlers[method](this)
         end)
         ngx.say("router end")
     end

@@ -6,8 +6,9 @@ return function(app)
         local path = item.path .. "/app.lua"
         if fileUtils.isExist(path) then
             local appFunc = dofile(path)
-            local ok, _ = pcall(appFunc, app)
+            local ok, err = pcall(appFunc, app)
             if not ok then
+                ngx.log(ngx.ERR, err)
                 error(path .. " exec error")
             end
         end

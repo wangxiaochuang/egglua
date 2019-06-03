@@ -1,3 +1,9 @@
-local ApplicationWrapper = require("egglua.lib.ApplicationWrapper")
+local BaseApplication = require("egglua.lib.core.BaseApplication")
+local _M = {}
 
-return ApplicationWrapper:new()
+function _M.initapp(appname)
+    local app = BaseApplication:new(appname)
+    package.loaded["egglua.index"] = app
+end
+
+return _M
