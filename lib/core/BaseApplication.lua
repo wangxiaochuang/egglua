@@ -19,7 +19,7 @@ local loadMiddlewares = require(("elf.lib.core.loader.Middlewares"))
 local loadControllers = require("elf.lib.core.loader.Controllers")
 local loadRouters = require("elf.lib.core.loader.Routers")
 
-local init, handle
+local init
 
 function _M:new(appname)
     local o = {
@@ -72,7 +72,7 @@ init = function(app)
     loadUnits(app)
     loadConfigs(app)
 
-    app.output = ngx.say
+    app.output = say
     if not app.config.debug then
         ngx.say = function(...)
             ngx.log(ngx.ERR, ...)
@@ -87,7 +87,7 @@ init = function(app)
     loadRouters(app)
 end
 
-handle = function(ctx, errhandle)
+local handle = function(ctx, errhandle)
     local app = ctx.app
     local err_msg = nil
     local ok, ee = xpcall(function()
